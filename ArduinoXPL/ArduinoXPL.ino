@@ -5,6 +5,10 @@
 
 #define ADF_LIMIT_LOW 190
 #define ADF_LIMIT_HIGH 535
+#define NAV_LIMIT_LOW 108
+#define NAV_LIMIT_HIGH 117
+#define COM_LIMIT_LOW 118
+#define COM_LIMIT_HIGH 136
 
 #define BUTTON_BLOCK_INT 500
 
@@ -29,17 +33,22 @@ long cntr = 0;
 
 int val = 0;
 
-int a;
-int b;
-int a_prev;
-int b_prev;
-int del = 0;
+int a, b, c, d;
+int a_prev, b_prev, c_prev, d_prev;
 
-// hodnoty: 0 - hodnota nastavena tocitkem, 1 - hodnota LCD, 2 - hodnota poslana
-int val_hdg[3];
-int val_crs[3];
-int val_ad1[3];
-int val_ad2[3];
+// hodnoty
+int val_hdg = 0;
+int val_crs = 0;
+int val_ad1 = 448;
+int val_ad2 = 448;
+uint8_t val_nav1_a = 110;
+uint8_t val_nav1_b = 50;
+uint8_t val_nav2_a = 110;
+uint8_t val_nav2_b = 50;
+uint8_t val_com1_a = 120;
+uint8_t val_com1_b = 0;
+uint8_t val_com2_a = 120;
+uint8_t val_com2_b = 0;
 
 const char char_sipka_r[2] = {126,0};
 const char char_sipka_l[2] = {127,0};
@@ -49,8 +58,7 @@ void setup(){
 
   // seriak
   Serial.begin(9600);
-  while (!Serial) {
-  }
+  while (!Serial) { }
 
   // definice tlacitak
   tlacitko_list[0].pin = 4;    tlacitko_list[0].block = BUTTON_BLOCK_INT;   // leve mackaci tocitko
@@ -73,9 +81,6 @@ void setup(){
   pinMode(12,INPUT_PULLUP);
   pinMode(13,INPUT_PULLUP);
 
-  // aktualni obrazovka
-  actual_screen = 1;
-
   // sipky na radio obrazovce
   sipka_left_pos = 1;
   sipka_right_pos = 1;
@@ -86,22 +91,8 @@ void setup(){
   lcd.begin();  
   lcd.backlight();
 
-  val_hdg[0] = 0;
-  val_hdg[1] = 1;
-  val_hdg[2] = 1;
-  
-  val_crs[0] = 0;
-  val_crs[1] = 1;
-  val_crs[2] = 1;  
-  
-  val_ad1[0] = 448;
-  val_ad1[1] = 0;
-  val_ad1[2] = 0;
-  
-  val_ad2[0] = 448;
-  val_ad2[1] = 0;
-  val_ad2[2] = 0;  
-
+  // aktualni obrazovka
+  actual_screen = 1;  
   redraw1();
 }
 
@@ -109,13 +100,15 @@ void loop() {
   int i;
   int butt_state;
   
-  del++;
-  
   a_prev = a;
   b_prev = b;
+  c_prev = c;
+  d_prev = d;
   
   a = digitalRead(2);
   b = digitalRead(3);
+  c = digitalRead(12);
+  d = digitalRead(13);
 
   // tlacitka
   for(i = 0; i < 8; i++){
@@ -125,17 +118,23 @@ void loop() {
       // neco budeme delat - je to nove stisknuty
       tlacitko_list[i].block = BUTTON_BLOCK_INT;
 
+      // prepinani obrazovek -
       if(i == 3){
-        if(actual_screen > 1){
+        if(actual_screen == 1){
+          actual_screen = 2;
+        } else {
           actual_screen--;
-          switch_screen();
         }
+        switch_screen();
       }
+      // prepinani obrazovek +
       if(i == 4){
-        if(actual_screen < 2){
+        if(actual_screen == 2){
+          actual_screen = 1;
+        } else {
           actual_screen++;
-          switch_screen();
         }
+        switch_screen();
       }
 
       // radio stranka
@@ -187,11 +186,12 @@ void loop() {
     }
   }
 
-  // poreseni tocitka
+  // poreseni leveho tocitka
   if(a_prev == LOW && b_prev == LOW){
 
     // zvysovani
     if(a == LOW && b == HIGH){
+      /*
       if(sipka_left_pos == 1){
         val_hdg[0]++;
         if(val_hdg[0] >= 360){
@@ -216,10 +216,12 @@ void loop() {
           val_ad2[0] = ADF_LIMIT_LOW;
         }
       }
+      */
     }
 
     // snizovani
     if(a == HIGH && b == LOW){
+      /*
       if(sipka_left_pos == 1){      
         val_hdg[0]--;
         if(val_hdg[0] < 0){
@@ -244,44 +246,97 @@ void loop() {
           val_ad2[0] = ADF_LIMIT_HIGH;
         }
       }      
-      
+      */
     }    
   }
-  
-  // displej  
-  if(val_hdg[0] != val_hdg[1]){
-    val = val_hdg[0];
-    lcd.setCursor (4,0);
-    if(val_hdg[0] < 10) lcd.print("0");
-    if(val_hdg[0] < 100) lcd.print("0");
-    lcd.print(val_hdg[0]);
-    val_hdg[1] = val_hdg[0];
+
+  // poreseni praveho tocitka
+  if(c_prev == LOW && d_prev == LOW){
+
+    // zvysovani
+    if(c == LOW && d == HIGH){
+      if(actual_screen == 1){
+
+        // NAV1 - zvysovani
+        if(sipka_right_pos == 1){
+          if(sipka_right_dir == 1){
+            if(val_nav1_b == 95){
+              val_nav1_b = 0;
+            } else {
+              val_nav1_b = val_nav1_b + 5;
+            }
+          }
+          if(sipka_right_dir == 2){
+            if(val_nav1_a < NAV_LIMIT_HIGH){
+              val_nav1_a++;
+            }
+          }
+          redraw1_val(5);
+        }
+
+        // NAV2 - zvysovani
+        if(sipka_right_pos == 2){
+          if(sipka_right_dir == 1){
+            if(val_nav2_b == 95){
+              val_nav2_b = 0;
+            } else {
+              val_nav2_b = val_nav2_b + 5;
+            }
+          }
+          if(sipka_right_dir == 2){
+            if(val_nav2_a < NAV_LIMIT_HIGH){
+              val_nav2_a++;
+            }
+          }
+          redraw1_val(6);
+        }        
+        
+      }
+    }
+
+    // snizovani
+    if(c == HIGH && d == LOW){
+      if(actual_screen == 1){
+        
+        // NAV1 - snizovani
+        if(sipka_right_pos == 1){
+          if(sipka_right_dir == 1){
+            if(val_nav1_b == 0){
+              val_nav1_b = 95;
+            } else {
+              val_nav1_b = val_nav1_b - 5;
+            }
+          }
+          if(sipka_right_dir == 2){
+            if(val_nav1_a > NAV_LIMIT_LOW){
+              val_nav1_a--;
+            }
+          }
+          redraw1_val(5);
+        }
+
+        // NAV2 - snizovani
+        if(sipka_right_pos == 2){
+          if(sipka_right_dir == 1){
+            if(val_nav2_b == 0){
+              val_nav2_b = 95;
+            } else {
+              val_nav2_b = val_nav2_b - 5;
+            }
+          }
+          if(sipka_right_dir == 2){
+            if(val_nav2_a > NAV_LIMIT_LOW){
+              val_nav2_a--;
+            }
+          }
+          redraw1_val(6);
+        }
+        
+      }
+    }    
   }
-  if(val_crs[0] != val_crs[1]){
-    val = val_crs[0];
-    lcd.setCursor (4,1);
-    if(val_crs[0] < 10) lcd.print("0");
-    if(val_crs[0] < 100) lcd.print("0");
-    lcd.print(val_crs[0]);
-    val_crs[1] = val_crs[0];
-  }  
-  if(val_ad1[0] != val_ad1[1]){
-    val = val_crs[0];
-    lcd.setCursor (4,2);
-    if(val_ad1[0] < 10) lcd.print("0");
-    if(val_ad1[0] < 100) lcd.print("0");
-    lcd.print(val_ad1[0]);
-    val_ad1[1] = val_ad1[0];
-  }
-  if(val_ad2[0] != val_ad2[1]){
-    val = val_crs[0];
-    lcd.setCursor (4,3);
-    if(val_ad2[0] < 10) lcd.print("0");
-    if(val_ad2[0] < 100) lcd.print("0");
-    lcd.print(val_ad2[0]);
-    val_ad2[1] = val_ad2[0];
-  }
-  
+
+  /*
   // seriak
   if(val_hdg[0] != val_hdg[2]){
     Serial.print("HDG_");
@@ -303,17 +358,91 @@ void loop() {
     Serial.println(val_ad2[0]);
     val_ad2[2] = val_ad2[0];
   }
-
+*/
 }
 
+/**
+ * Prepnuti obrazovek
+ */
 void switch_screen(){
   if(actual_screen == 1) redraw1();
   if(actual_screen == 2) redraw2();
 }
 
+/**
+ * Vykresleni komplet stranky 1
+ */
 void redraw1(){
+  uint8_t i;
+  
   redraw1_static();
   redraw1_sipka();
+
+  for(i = 1; i <= 8; i++){
+    redraw1_val(i);
+  }
+}
+
+/**
+ * Prekresleni hodnoty na strance 1
+ */
+void redraw1_val(uint8_t var){
+  if(var == 1){
+    lcd.setCursor (4,0);
+    if(val_hdg < 10) lcd.print("0");
+    if(val_hdg < 100) lcd.print("0");
+    lcd.print(val_hdg);
+  }
+  if(var == 2){
+    lcd.setCursor (4,1);
+    if(val_crs < 10) lcd.print("0");
+    if(val_crs < 100) lcd.print("0");
+    lcd.print(val_crs);
+  }
+  if(var == 3){
+    lcd.setCursor (4,2);
+    lcd.print(val_ad1);
+  }
+  if(var == 4){
+    lcd.setCursor (4,3);
+    lcd.print(val_ad2);
+  }
+  if(var == 5){
+    lcd.setCursor (14,0);
+    lcd.print(val_nav1_a);
+    lcd.setCursor (18,0);
+    if(val_nav1_b < 10){
+      lcd.print("0");
+    }
+    lcd.print(val_nav1_b);
+  }
+  if(var == 6){
+    lcd.setCursor (14,1);
+    lcd.print(val_nav2_a);
+    lcd.setCursor (18,1);
+    if(val_nav2_b < 10){
+      lcd.print("0");
+    }
+    lcd.print(val_nav2_b);
+  }  
+  if(var == 7){
+    lcd.setCursor (14,2);
+    lcd.print(val_com1_a);
+    lcd.setCursor (18,2);
+    if(val_com1_b < 10){
+      lcd.print("0");
+    }
+    lcd.print(val_com1_b);
+  }
+  if(var == 8){
+    lcd.setCursor (14,3);
+    lcd.print(val_com2_a);
+    lcd.setCursor (18,3);
+    if(val_com2_b < 10){
+      lcd.print("0");
+    }
+    lcd.print(val_com2_b);
+  }    
 }
 
 /**
@@ -344,16 +473,18 @@ void redraw1_sipka(){
  */
 void redraw1_static(){
   lcd.setCursor (0,0);
-  lcd.print("HDG      NAV1       ");
+  lcd.print("HDG      NAV1    .  ");
   lcd.setCursor (0,1);
-  lcd.print("CRS      NAV2       ");
+  lcd.print("CRS      NAV2    .  ");
   lcd.setCursor (0,2);
-  lcd.print("AD1      COM1       ");
+  lcd.print("AD1      COM1    .  ");
   lcd.setCursor (0,3);
-  lcd.print("AD2      COM2       ");
+  lcd.print("AD2      COM2    .  ");
 }
 
-
+/**
+ * Komplet prekresleni druhe obrazovky
+ */
 void redraw2(){
   redraw2_static();
 }
