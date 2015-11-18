@@ -94,6 +94,11 @@ void setup(){
   // aktualni obrazovka
   actual_screen = 1;  
   redraw1();
+
+  // uvodni odeslani udaju
+  for(i = 1; i <= 8; i++){
+    sendValSerial(i);
+  }
 }
 
 void loop() {
@@ -191,62 +196,95 @@ void loop() {
 
     // zvysovani
     if(a == LOW && b == HIGH){
-      /*
-      if(sipka_left_pos == 1){
-        val_hdg[0]++;
-        if(val_hdg[0] >= 360){
-          val_hdg[0] = val_hdg[0] % 360;
+      if(actual_screen == 1){
+        
+        // HDG - zvyseni
+        if(sipka_left_pos == 1){
+          val_hdg++;
+          if(val_hdg >= 360){
+            val_hdg = val_hdg % 360;
+          }
+          redraw1_val(1);
+          sendValSerial(1);
+        }
+
+        // CRS - zvyseni
+        if(sipka_left_pos == 2){
+          val_crs++;
+          if(val_crs >= 360){
+            val_crs = val_crs % 360;
+          }
+          redraw1_val(2);
+          sendValSerial(2);
+        }
+
+        // ADF1 - zvyseni
+        if(sipka_left_pos == 3){
+          val_ad1++;
+          if(val_ad1 > ADF_LIMIT_HIGH){
+            val_ad1 = ADF_LIMIT_LOW;
+          }
+          redraw1_val(3);
+          sendValSerial(3);
+        }            
+
+        // ADF2 - zvyseni
+        if(sipka_left_pos == 4){
+          val_ad2++;
+          if(val_ad2 > ADF_LIMIT_HIGH){
+            val_ad2 = ADF_LIMIT_LOW;
+          }
+          redraw1_val(4);
+          sendValSerial(4);
         }
       }
-      if(sipka_left_pos == 2){
-        val_crs[0]++;
-        if(val_crs[0] >= 360){
-          val_crs[0] = 0;
-        }
-      }      
-      if(sipka_left_pos == 3){
-        val_ad1[0]++;
-        if(val_ad1[0] > ADF_LIMIT_HIGH){
-          val_ad1[0] = ADF_LIMIT_LOW;
-        }
-      }            
-      if(sipka_left_pos == 4){
-        val_ad2[0]++;
-        if(val_ad2[0] > ADF_LIMIT_HIGH){
-          val_ad2[0] = ADF_LIMIT_LOW;
-        }
-      }
-      */
     }
 
     // snizovani
     if(a == HIGH && b == LOW){
-      /*
-      if(sipka_left_pos == 1){      
-        val_hdg[0]--;
-        if(val_hdg[0] < 0){
-          val_hdg[0] = 359;
+      if(actual_screen == 1){
+
+        // HDG - snizeni
+        if(sipka_left_pos == 1){      
+          val_hdg--;
+          if(val_hdg < 0){
+            val_hdg = 359;
+          }
+          redraw1_val(1);
+          sendValSerial(1);
+        }      
+
+        // CRS - snizeni
+        if(sipka_left_pos == 2){      
+          val_crs--;
+          if(val_crs < 0){
+            val_crs = 359;
+          }
+          redraw1_val(2);
+          sendValSerial(2);
         }
-      }      
-      if(sipka_left_pos == 2){      
-        val_crs[0]--;
-        if(val_crs[0] < 0){
-          val_crs[0] = 359;
+
+        // ADF1 - snizeni
+        if(sipka_left_pos == 3){
+          val_ad1--;
+          if(val_ad1 < ADF_LIMIT_LOW){
+            val_ad1 = ADF_LIMIT_HIGH;
+          }
+          redraw1_val(3);
+          sendValSerial(3);
         }
+
+        // ADF2 - snizeni
+        if(sipka_left_pos == 4){
+          val_ad2--;
+          if(val_ad2 < ADF_LIMIT_LOW){
+            val_ad2 = ADF_LIMIT_HIGH;
+          }
+          redraw1_val(4);
+          sendValSerial(4);
+        }
+              
       }
-      if(sipka_left_pos == 3){
-        val_ad1[0]--;
-        if(val_ad1[0] < ADF_LIMIT_LOW){
-          val_ad1[0] = ADF_LIMIT_HIGH;
-        }
-      }
-      if(sipka_left_pos == 4){
-        val_ad2[0]--;
-        if(val_ad2[0] < ADF_LIMIT_LOW){
-          val_ad2[0] = ADF_LIMIT_HIGH;
-        }
-      }      
-      */
     }    
   }
 
@@ -272,6 +310,7 @@ void loop() {
             }
           }
           redraw1_val(5);
+          sendValSerial(5);
         }
 
         // NAV2 - zvysovani
@@ -289,7 +328,44 @@ void loop() {
             }
           }
           redraw1_val(6);
+          sendValSerial(6);
         }        
+
+        // COM1 - zvysovani
+        if(sipka_right_pos == 3){
+          if(sipka_right_dir == 1){
+            if(val_com1_b == 97){
+              val_com1_b = 0;
+            } else {
+              val_com1_b = val_com1_b + (val_com1_b % 5 == 0 ? 2 : 3);
+            }
+          }
+          if(sipka_right_dir == 2){
+            if(val_com1_a < COM_LIMIT_HIGH){
+              val_com1_a++;
+            }
+          }
+          redraw1_val(7);
+          sendValSerial(7);
+        }
+
+        // COM2 - zvysovani
+        if(sipka_right_pos == 4){
+          if(sipka_right_dir == 1){
+            if(val_com2_b == 97){
+              val_com2_b = 0;
+            } else {
+              val_com2_b = val_com2_b + (val_com2_b % 5 == 0 ? 2 : 3);
+            }
+          }
+          if(sipka_right_dir == 2){
+            if(val_com2_a < COM_LIMIT_HIGH){
+              val_com2_a++;
+            }
+          }
+          redraw1_val(8);
+          sendValSerial(8);
+        }
         
       }
     }
@@ -313,6 +389,7 @@ void loop() {
             }
           }
           redraw1_val(5);
+          sendValSerial(5);
         }
 
         // NAV2 - snizovani
@@ -330,35 +407,102 @@ void loop() {
             }
           }
           redraw1_val(6);
+          sendValSerial(6);
+        }
+
+        // COM1 - snizovani
+        if(sipka_right_pos == 3){
+          if(sipka_right_dir == 1){
+            if(val_com1_b == 0){
+              val_com1_b = 97;
+            } else {
+              val_com1_b = val_com1_b - (val_com1_b % 5 == 0 ? 3 : 2);
+            }
+          }
+          if(sipka_right_dir == 2){
+            if(val_com1_a > COM_LIMIT_LOW){
+              val_com1_a--;
+            }
+          }
+          redraw1_val(7);
+          sendValSerial(7);
+        }
+
+        // COM2 - snizovani
+        if(sipka_right_pos == 4){
+          if(sipka_right_dir == 1){
+            if(val_com2_b == 0){
+              val_com2_b = 97;
+            } else {
+              val_com2_b = val_com2_b - (val_com2_b % 5 == 0 ? 3 : 2);
+            }
+          }
+          if(sipka_right_dir == 2){
+            if(val_com2_a > COM_LIMIT_LOW){
+              val_com2_a--;
+            }
+          }
+          redraw1_val(8);
+          sendValSerial(8);
         }
         
       }
     }    
   }
+}
 
-  /*
-  // seriak
-  if(val_hdg[0] != val_hdg[2]){
+/**
+ * Poslani hodnoty na seriak
+ */
+void sendValSerial(uint8_t var){
+  if(var == 1){
     Serial.print("HDG_");
-    Serial.println(val_hdg[0]);
-    val_hdg[2] = val_hdg[0];
+    Serial.println(val_hdg);
   }
-  if(val_crs[0] != val_crs[2]){
+  if(var == 2){
     Serial.print("CRS_");
-    Serial.println(val_crs[0]);
-    val_crs[2] = val_crs[0];
+    Serial.println(val_crs);
   }
-  if(val_ad1[0] != val_ad1[2]){
+  if(var == 3){
     Serial.print("AD1_");
-    Serial.println(val_ad1[0]);
-    val_ad1[2] = val_ad1[0];
+    Serial.println(val_ad1);    
   }
-  if(val_ad2[0] != val_ad2[2]){
+  if(var == 4){
     Serial.print("AD2_");
-    Serial.println(val_ad2[0]);
-    val_ad2[2] = val_ad2[0];
+    Serial.println(val_ad2);    
   }
-*/
+  if(var == 5){
+    Serial.print("NA1_");
+    Serial.print(val_nav1_a);
+    if(val_nav1_b < 10){
+      Serial.print("0");  
+    }
+    Serial.println(val_nav1_b);
+  }
+  if(var == 6){
+    Serial.print("NA2_");
+    Serial.print(val_nav2_a);
+    if(val_nav2_b < 10){
+      Serial.print("0");  
+    }
+    Serial.println(val_nav2_b);
+  }  
+  if(var == 7){
+    Serial.print("CO1_");
+    Serial.print(val_com1_a);
+    if(val_com1_b < 10){
+      Serial.print("0");  
+    }
+    Serial.println(val_com1_b);
+  }
+  if(var == 8){
+    Serial.print("CO2_");
+    Serial.print(val_com2_a);
+    if(val_com2_b < 10){
+      Serial.print("0");  
+    }
+    Serial.println(val_com2_b);
+  }    
 }
 
 /**
