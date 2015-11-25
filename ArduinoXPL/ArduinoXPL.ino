@@ -35,6 +35,7 @@ int val = 0;
 
 int a, b, c, d;
 int a_prev, b_prev, c_prev, d_prev;
+int A_block, B_block;
 
 // hodnoty
 int val_hdg = 0;
@@ -99,6 +100,9 @@ void setup(){
   for(i = 1; i <= 8; i++){
     sendValSerial(i);
   }
+
+  A_block = 0;
+  B_block = 0;
 }
 
 void loop() {
@@ -185,6 +189,16 @@ void loop() {
           redraw1_sipka();
         }        
       }
+
+      // gps stranka
+      if(actual_screen == 2){
+        if(i == 1){
+          sendValSerial(9);
+        }
+        if(i == 2){
+          sendValSerial(10);
+        }
+      }
     }
     if(butt_state == LOW && tlacitko_list[i].block > 0){
       tlacitko_list[i].block--;
@@ -195,7 +209,9 @@ void loop() {
   if(a_prev == LOW && b_prev == LOW){
 
     // zvysovani
-    if(a == LOW && b == HIGH){
+    if(a == LOW && b == HIGH && A_block == 0){
+      A_block = BUTTON_BLOCK_INT;
+      
       if(actual_screen == 1){
         
         // HDG - zvyseni
@@ -238,10 +254,15 @@ void loop() {
           sendValSerial(4);
         }
       }
+      if(actual_screen == 2){
+        sendValSerial(11);
+      }
     }
 
     // snizovani
-    if(a == HIGH && b == LOW){
+    if(a == HIGH && b == LOW && A_block == 0){
+      A_block = BUTTON_BLOCK_INT;
+      
       if(actual_screen == 1){
 
         // HDG - snizeni
@@ -285,6 +306,9 @@ void loop() {
         }
               
       }
+      if(actual_screen == 2){
+        sendValSerial(12);
+      }      
     }    
   }
 
@@ -292,7 +316,9 @@ void loop() {
   if(c_prev == LOW && d_prev == LOW){
 
     // zvysovani
-    if(c == LOW && d == HIGH){
+    if(c == LOW && d == HIGH && B_block == 0){
+      B_block = BUTTON_BLOCK_INT;
+      
       if(actual_screen == 1){
 
         // NAV1 - zvysovani
@@ -368,10 +394,15 @@ void loop() {
         }
         
       }
+      if(actual_screen == 2){
+        sendValSerial(13);
+      }      
     }
 
     // snizovani
-    if(c == HIGH && d == LOW){
+    if(c == HIGH && d == LOW && B_block == 0){
+      B_block = BUTTON_BLOCK_INT;
+      
       if(actual_screen == 1){
         
         // NAV1 - snizovani
@@ -447,8 +478,14 @@ void loop() {
         }
         
       }
+      if(actual_screen == 2){
+        sendValSerial(14);
+      }      
     }    
   }
+
+  if(A_block > 0) A_block--;
+  if(B_block > 0) B_block--;
 }
 
 /**
@@ -503,6 +540,24 @@ void sendValSerial(uint8_t var){
     }
     Serial.println(val_com2_b);
   }    
+  if(var == 9){
+    Serial.println("GP1");
+  }
+  if(var == 10){
+    Serial.println("GP2");
+  }  
+  if(var == 11){
+    Serial.println("GP3");
+  }
+  if(var == 12){
+    Serial.println("GP4");
+  }
+  if(var == 13){
+    Serial.println("GP5");
+  }
+  if(var == 14){
+    Serial.println("GP6");
+  }  
 }
 
 /**
@@ -638,12 +693,12 @@ void redraw2(){
  */
 void redraw2_static(){
   lcd.setCursor (0,0);
-  lcd.print("SCREEN 2            ");
+  lcd.print("ENT                 ");
   lcd.setCursor (0,1);
   lcd.print("                    ");
   lcd.setCursor (0,2);
   lcd.print("                    ");
   lcd.setCursor (0,3);
-  lcd.print("                    ");
+  lcd.print("DCT                 ");
 }
 

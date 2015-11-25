@@ -6,7 +6,7 @@ lmc_set_com_splitter('COM', '\n')
 
 -- zpracovani prijatych dat z COM
 lmc_set_handler('COM', function(comVal)
-  -- print(">>" .. comVal .. "<<")
+  --print(">>" .. comVal .. "<<")
 
   if(string.sub(comVal, 1, 4) == "AD1_") then
     val = string.sub(comVal,5)
@@ -46,6 +46,30 @@ lmc_set_handler('COM', function(comVal)
   if(string.sub(comVal, 1, 4) == "CO2_") then
     val = string.sub(comVal,5)
     lmc_set_xpl_variable('sim/cockpit2/radios/actuators/com2_frequency_hz', val + 0)
+  end
+
+  if(string.sub(comVal, 1, 3) == "GP1") then
+    lmc_xpl_command('sim/GPS/g430n1_direct')
+  end
+
+  if(string.sub(comVal, 1, 3) == "GP2") then
+    lmc_xpl_command('sim/GPS/g430n1_ent')
+  end
+
+  if(string.sub(comVal, 1, 3) == "GP3") then
+    lmc_xpl_command('sim/GPS/g430n1_chapter_up')
+  end
+
+  if(string.sub(comVal, 1, 3) == "GP4") then
+    lmc_xpl_command('sim/GPS/g430n1_chapter_dn')
+  end
+
+  if(string.sub(comVal, 1, 3) == "GP5") then
+    lmc_xpl_command('sim/GPS/g430n1_page_up')
+  end
+
+  if(string.sub(comVal, 1, 3) == "GP6") then
+    lmc_xpl_command('sim/GPS/g430n1_page_dn')
   end
 
 end)
