@@ -2,7 +2,7 @@ print('ArduinoXPL')
 
 -- ArduinoXPL - COM
 lmc_add_com('COM', 'COM4', 9600, 8, 'N', 1)
-lmc_set_com_splitter('COM', '\n')
+lmc_set_com_splitter('COM', '\n')  
 
 -- zpracovani prijatych dat z COM
 lmc_set_handler('COM', function(comVal)
@@ -73,3 +73,11 @@ lmc_set_handler('COM', function(comVal)
   end
 
 end)
+
+lmc_on_xpl_var_change('sim/cockpit2/radios/indicators/gps_nav_id', function(value)
+  print('Var change to ' .. value)
+  lmc_send_to_com('COM', value)
+end)
+
+
+os.execute("timeout " .. tonumber(6))   

@@ -54,6 +54,9 @@ uint8_t val_com2_b = 0;
 const char char_sipka_r[2] = {126,0};
 const char char_sipka_l[2] = {127,0};
 
+char serial_buff[30];
+int serial_cntr = 0;
+
 void setup(){
   int i;
 
@@ -108,6 +111,16 @@ void setup(){
 void loop() {
   int i;
   int butt_state;
+
+
+
+  if(Serial.available() > 0) {
+    serial_buff[serial_cntr] = Serial.read();
+    serial_cntr++;
+    serial_buff[serial_cntr] = '\0';
+    redraw2_val(1);
+    
+  }
   
   a_prev = a;
   b_prev = b;
@@ -586,6 +599,11 @@ void redraw1(){
  * Prekresleni hodnoty na strance 1
  */
 void redraw1_val(uint8_t var){
+
+  if(actual_screen != 1){
+    return;
+  }
+  
   if(var == 1){
     lcd.setCursor (4,0);
     if(val_hdg < 10) lcd.print("0");
@@ -641,7 +659,17 @@ void redraw1_val(uint8_t var){
       lcd.print("0");
     }
     lcd.print(val_com2_b);
-  }    
+  }
+}
+
+void redraw2_val(uint8_t var){
+  if(actual_screen != 2){
+    return;
+  }
+  if(var == 1){    
+    lcd.setCursor (5,0);
+    lcd.print(serial_buff);
+  }  
 }
 
 /**
@@ -685,7 +713,11 @@ void redraw1_static(){
  * Komplet prekresleni druhe obrazovky
  */
 void redraw2(){
+  uint8_t i;
   redraw2_static();
+  for(i = 1; i <= 1; i++){
+    redraw2_val(i);
+  }  
 }
 
 /**
