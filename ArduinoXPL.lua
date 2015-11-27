@@ -75,9 +75,12 @@ lmc_set_handler('COM', function(comVal)
 end)
 
 lmc_on_xpl_var_change('sim/cockpit2/radios/indicators/gps_nav_id', function(value)
-  print('Var change to ' .. value)
-  lmc_send_to_com('COM', value)
+  lmc_send_to_com('COM', 'GP1_' .. value .. '|')
 end)
+
+lmc_on_xpl_var_change('sim/cockpit2/radios/indicators/gps_dme_distance_nm', function(value, count)
+  lmc_send_to_com('COM', 'GPD_' .. string.format("%.2f", value) .. '|')
+end, 2000)
 
 
 os.execute("timeout " .. tonumber(6))   

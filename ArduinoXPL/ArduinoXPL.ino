@@ -12,6 +12,8 @@
 
 #define BUTTON_BLOCK_INT 500
 
+#define SERIAL_BUFF_SIZE 30
+
 typedef struct {
   uint8_t pin;
   uint16_t block;
@@ -51,10 +53,13 @@ uint8_t val_com1_b = 0;
 uint8_t val_com2_a = 120;
 uint8_t val_com2_b = 0;
 
+char val_gps_to[10] = "";
+double val_gps_distance = 0;
+
 const char char_sipka_r[2] = {126,0};
 const char char_sipka_l[2] = {127,0};
 
-char serial_buff[30];
+char serial_buff[SERIAL_BUFF_SIZE];
 int serial_cntr = 0;
 
 void setup(){
@@ -111,15 +116,30 @@ void setup(){
 void loop() {
   int i;
   int butt_state;
+  char serial_ch;
 
-
-
+  // prijem dat po seriaku
   if(Serial.available() > 0) {
-    serial_buff[serial_cntr] = Serial.read();
-    serial_cntr++;
-    serial_buff[serial_cntr] = '\0';
-    redraw2_val(1);
-    
+    serial_ch = Serial.read();
+    if(serial_ch == '|' && serial_cntr > 0){
+      if(serial_buff[3] == '_'){
+        if(strncmp(serial_buff, "GP1", 3) == 0){
+          strcpy(val_gps_to, &serial_buff[4]);
+          redraw2_val(1);
+        }
+        if(strncmp(serial_buff, "GPD", 3) == 0){
+          val_gps_distance = atof(&serial_buff[4]);
+          redraw2_val(2);
+        }
+      }
+      serial_cntr = 0;
+    } else {
+      if(serial_cntr < SERIAL_BUFF_SIZE - 1 && serial_ch != '|'){
+        serial_buff[serial_cntr] = serial_ch;
+        serial_cntr++;
+        serial_buff[serial_cntr] = '\0';
+      }
+    }
   }
   
   a_prev = a;
@@ -667,9 +687,17 @@ void redraw2_val(uint8_t var){
     return;
   }
   if(var == 1){    
-    lcd.setCursor (5,0);
-    lcd.print(serial_buff);
+    lcd.setCursor (4,0);
+    lcd.print("            ");
+    lcd.setCursor (4,0);
+    lcd.print(val_gps_to);
   }  
+  if(var == 2){    
+    lcd.setCursor (4,1);
+    lcd.print("            ");
+    lcd.setCursor (4,1);
+    lcd.print(val_gps_distance);
+  }
 }
 
 /**
@@ -715,7 +743,7 @@ void redraw1_static(){
 void redraw2(){
   uint8_t i;
   redraw2_static();
-  for(i = 1; i <= 1; i++){
+  for(i = 1; i <= 2; i++){
     redraw2_val(i);
   }  
 }
@@ -727,7 +755,7 @@ void redraw2_static(){
   lcd.setCursor (0,0);
   lcd.print("ENT                 ");
   lcd.setCursor (0,1);
-  lcd.print("                    ");
+  lcd.print("dis                 ");
   lcd.setCursor (0,2);
   lcd.print("                    ");
   lcd.setCursor (0,3);
