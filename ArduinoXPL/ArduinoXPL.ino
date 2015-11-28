@@ -55,6 +55,11 @@ uint8_t val_com2_b = 0;
 
 char val_gps_to[10] = "";
 double val_gps_distance = 0;
+int val_gps_gs = 0;
+int val_gps_ete = 0;
+int val_gps_dtk = 0;
+int val_gps_brg = 0;
+int val_gps_trk = 0;
 
 const char char_sipka_r[2] = {126,0};
 const char char_sipka_l[2] = {127,0};
@@ -127,10 +132,30 @@ void loop() {
           strcpy(val_gps_to, &serial_buff[4]);
           redraw2_val(1);
         }
-        if(strncmp(serial_buff, "GPD", 3) == 0){
+        if(strncmp(serial_buff, "GP2", 3) == 0){
           val_gps_distance = atof(&serial_buff[4]);
           redraw2_val(2);
         }
+        if(strncmp(serial_buff, "GP5", 3) == 0){
+          val_gps_gs = atoi(&serial_buff[4]);
+          redraw2_val(3);
+        }
+        if(strncmp(serial_buff, "GP4", 3) == 0){
+          val_gps_ete = atoi(&serial_buff[4]);
+          redraw2_val(4);
+        }
+        if(strncmp(serial_buff, "GP3", 3) == 0){
+          val_gps_dtk = atof(&serial_buff[4]);
+          redraw2_val(5);
+        }
+        if(strncmp(serial_buff, "GP6", 3) == 0){
+          val_gps_brg = atoi(&serial_buff[4]);
+          redraw2_val(6);
+        }
+        if(strncmp(serial_buff, "GP7", 3) == 0){
+          val_gps_trk = atoi(&serial_buff[4]);
+          redraw2_val(7);
+        }        
       }
       serial_cntr = 0;
     } else {
@@ -688,15 +713,45 @@ void redraw2_val(uint8_t var){
   }
   if(var == 1){    
     lcd.setCursor (4,0);
-    lcd.print("            ");
+    lcd.print("                ");
     lcd.setCursor (4,0);
     lcd.print(val_gps_to);
   }  
   if(var == 2){    
     lcd.setCursor (4,1);
-    lcd.print("            ");
+    lcd.print("         ");
     lcd.setCursor (4,1);
     lcd.print(val_gps_distance);
+  }
+  if(var == 3){    
+    lcd.setCursor (4,2);
+    lcd.print("         ");
+    lcd.setCursor (4,2);
+    lcd.print(val_gps_gs);
+  }  
+  if(var == 4){    
+    lcd.setCursor (4,3);
+    lcd.print("         ");
+    lcd.setCursor (4,3);
+    lcd.print(val_gps_ete / 60);
+  }
+  if(var == 5){    
+    lcd.setCursor (17,1);
+    lcd.print("   ");
+    lcd.setCursor (17,1);
+    lcd.print(val_gps_dtk);
+  }  
+  if(var == 6){    
+    lcd.setCursor (17,2);
+    lcd.print("   ");
+    lcd.setCursor (17,2);
+    lcd.print(val_gps_brg);
+  }
+  if(var == 7){    
+    lcd.setCursor (17,3);
+    lcd.print("   ");
+    lcd.setCursor (17,3);
+    lcd.print(val_gps_trk);
   }
 }
 
@@ -743,7 +798,7 @@ void redraw1_static(){
 void redraw2(){
   uint8_t i;
   redraw2_static();
-  for(i = 1; i <= 2; i++){
+  for(i = 1; i <= 7; i++){
     redraw2_val(i);
   }  
 }
@@ -753,12 +808,12 @@ void redraw2(){
  */
 void redraw2_static(){
   lcd.setCursor (0,0);
-  lcd.print("ENT                 ");
+  lcd.print("TO                  ");
   lcd.setCursor (0,1);
-  lcd.print("dis                 ");
+  lcd.print("DIS          DTK    ");
   lcd.setCursor (0,2);
-  lcd.print("                    ");
+  lcd.print("GS           BRG    ");
   lcd.setCursor (0,3);
-  lcd.print("DCT                 ");
+  lcd.print("ETE          TRK    ");
 }
 

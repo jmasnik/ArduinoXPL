@@ -74,13 +74,39 @@ lmc_set_handler('COM', function(comVal)
 
 end)
 
+-- GPS to
 lmc_on_xpl_var_change('sim/cockpit2/radios/indicators/gps_nav_id', function(value)
   lmc_send_to_com('COM', 'GP1_' .. value .. '|')
 end)
 
+-- GPS distance NM
 lmc_on_xpl_var_change('sim/cockpit2/radios/indicators/gps_dme_distance_nm', function(value, count)
-  lmc_send_to_com('COM', 'GPD_' .. string.format("%.2f", value) .. '|')
+  lmc_send_to_com('COM', 'GP2_' .. string.format("%.1f", value) .. '|')
 end, 2000)
 
+-- GPS DTK
+lmc_on_xpl_var_change('sim/cockpit/radios/gps_course_degtm', function(value, count)
+  lmc_send_to_com('COM', 'GP3_' .. string.format("%d", value) .. '|')
+end, 2000)
+
+-- GPS ETE sec
+lmc_on_xpl_var_change('sim/cockpit/radios/gps_dme_time_secs', function(value, count)
+  lmc_send_to_com('COM', 'GP4_' .. string.format("%d", value) .. '|')
+end, 2000)
+
+-- GPS dme speed kts
+lmc_on_xpl_var_change('sim/cockpit/radios/gps_dme_speed_kts', function(value, count)
+  lmc_send_to_com('COM', 'GP5_' .. string.format("%d", value) .. '|')
+end, 2000)
+
+-- GPS bearing
+lmc_on_xpl_var_change('sim/cockpit2/radios/indicators/gps_bearing_deg_mag', function(value, count)
+  lmc_send_to_com('COM', 'GP6_' .. string.format("%d", value) .. '|')
+end, 2000)
+
+-- GPS TRK (spatne - neni to GPS TRK, je to natoceni era...)
+lmc_on_xpl_var_change('sim/flightmodel/position/magpsi', function(value, count)
+  lmc_send_to_com('COM', 'GP7_' .. string.format("%d", value) .. '|')
+end, 2000)
 
 os.execute("timeout " .. tonumber(6))   
