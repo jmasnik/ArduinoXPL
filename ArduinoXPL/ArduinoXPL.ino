@@ -98,6 +98,8 @@ void setup(){
   // sipky na radio obrazovce
   sipka_left_pos = 1;
   sipka_right_pos = 1;
+
+  // smer sipky - 1=vpravo, 2=vlevo
   sipka_left_dir = 1;
   sipka_right_dir = 1;
 
@@ -248,11 +250,13 @@ void loop() {
         }        
       }
 
-      // gps stranka
+      // GPS stranka
       if(actual_screen == 2){
+        // leve dolni - GPS DIRECT
         if(i == 1){
           sendValSerial(9);
         }
+        // leve horni - GPS ENT
         if(i == 2){
           sendValSerial(10);
         }
@@ -274,7 +278,12 @@ void loop() {
         
         // HDG - zvyseni
         if(sipka_left_pos == 1){
-          val_hdg++;
+          if(sipka_left_dir == 1){
+            val_hdg++;
+          }
+          if(sipka_left_dir == 2){
+            val_hdg += 10;
+          }
           if(val_hdg >= 360){
             val_hdg = val_hdg % 360;
           }
@@ -284,7 +293,12 @@ void loop() {
 
         // CRS - zvyseni
         if(sipka_left_pos == 2){
-          val_crs++;
+          if(sipka_left_dir == 1){
+            val_crs++;
+          }
+          if(sipka_left_dir == 2){
+            val_crs += 10;
+          }
           if(val_crs >= 360){
             val_crs = val_crs % 360;
           }
@@ -294,7 +308,12 @@ void loop() {
 
         // ADF1 - zvyseni
         if(sipka_left_pos == 3){
-          val_ad1++;
+          if(sipka_left_dir == 1){
+            val_ad1++;
+          }
+          if(sipka_left_dir == 2){
+            val_ad1 += 10;
+          }
           if(val_ad1 > ADF_LIMIT_HIGH){
             val_ad1 = ADF_LIMIT_LOW;
           }
@@ -304,7 +323,12 @@ void loop() {
 
         // ADF2 - zvyseni
         if(sipka_left_pos == 4){
-          val_ad2++;
+          if(sipka_left_dir == 1){
+            val_ad2++;
+          }
+          if(sipka_left_dir == 2){
+            val_ad2 += 10;
+          }
           if(val_ad2 > ADF_LIMIT_HIGH){
             val_ad2 = ADF_LIMIT_LOW;
           }
@@ -325,9 +349,14 @@ void loop() {
 
         // HDG - snizeni
         if(sipka_left_pos == 1){      
-          val_hdg--;
+          if(sipka_left_dir == 1){
+            val_hdg--;
+          }
+          if(sipka_left_dir == 2){
+            val_hdg -= 10;
+          }
           if(val_hdg < 0){
-            val_hdg = 359;
+            val_hdg = 360 + val_hdg;
           }
           redraw1_val(1);
           sendValSerial(1);
@@ -335,9 +364,14 @@ void loop() {
 
         // CRS - snizeni
         if(sipka_left_pos == 2){      
-          val_crs--;
+          if(sipka_left_dir == 1){
+            val_crs--;
+          }
+          if(sipka_left_dir == 2){
+            val_crs -= 10;
+          }
           if(val_crs < 0){
-            val_crs = 359;
+            val_crs = 360 + val_crs;
           }
           redraw1_val(2);
           sendValSerial(2);
@@ -345,7 +379,12 @@ void loop() {
 
         // ADF1 - snizeni
         if(sipka_left_pos == 3){
-          val_ad1--;
+          if(sipka_left_dir == 1){
+            val_ad1--;
+          }
+          if(sipka_left_dir == 2){
+            val_ad1 -= 10;
+          }
           if(val_ad1 < ADF_LIMIT_LOW){
             val_ad1 = ADF_LIMIT_HIGH;
           }
@@ -355,7 +394,12 @@ void loop() {
 
         // ADF2 - snizeni
         if(sipka_left_pos == 4){
-          val_ad2--;
+          if(sipka_left_dir == 1){
+            val_ad2--;
+          }
+          if(sipka_left_dir == 2){
+            val_ad2 -= 10;
+          }
           if(val_ad2 < ADF_LIMIT_LOW){
             val_ad2 = ADF_LIMIT_HIGH;
           }
@@ -708,6 +752,11 @@ void redraw1_val(uint8_t var){
 }
 
 void redraw2_val(uint8_t var){
+  int ete;
+  uint8_t ete_h;
+  uint8_t ete_m;
+  uint8_t ete_s;
+  
   if(actual_screen != 2){
     return;
   }
@@ -733,7 +782,31 @@ void redraw2_val(uint8_t var){
     lcd.setCursor (4,3);
     lcd.print("         ");
     lcd.setCursor (4,3);
-    lcd.print(val_gps_ete / 60);
+
+    ete = val_gps_ete;
+    ete_s = ete % 60;
+    ete = (ete - ete_s) / 60;
+    ete_m = ete % 60;
+    ete_h = (ete - ete_m) / 60;
+
+    if(ete_h > 0){
+      // jsou tam nejake hodiny
+      lcd.print(ete_h);
+      lcd.print(":");
+      if(ete_m < 10){
+        lcd.print("0");  
+      }
+      lcd.print(ete_m);
+    } else {
+      // jen minuty a vteriny
+      lcd.print(ete_m);
+      lcd.print(":");
+      if(ete_s < 10){
+        lcd.print("0");  
+      }
+      lcd.print(ete_s);
+    }
+    
   }
   if(var == 5){    
     lcd.setCursor (17,1);

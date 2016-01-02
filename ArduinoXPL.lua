@@ -91,7 +91,7 @@ end, 2000)
 
 -- GPS ETE sec
 lmc_on_xpl_var_change('sim/cockpit/radios/gps_dme_time_secs', function(value, count)
-  lmc_send_to_com('COM', 'GP4_' .. string.format("%d", value) .. '|')
+  lmc_send_to_com('COM', 'GP4_' .. string.format("%d", value * 60) .. '|')
 end, 2000)
 
 -- GPS dme speed kts
