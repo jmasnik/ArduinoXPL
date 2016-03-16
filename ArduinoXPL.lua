@@ -72,6 +72,10 @@ lmc_set_handler('COM', function(comVal)
     lmc_xpl_command('sim/GPS/g430n1_page_dn')
   end
 
+  if(string.sub(comVal, 1, 3) == "APM") then
+    lmc_xpl_command('sim/autopilot/servos_toggle')
+  end
+
 end)
 
 -- GPS to
@@ -108,5 +112,26 @@ end, 2000)
 lmc_on_xpl_var_change('sim/flightmodel/position/magpsi', function(value, count)
   lmc_send_to_com('COM', 'GP7_' .. string.format("%d", value) .. '|')
 end, 2000)
+
+-- Avionics on
+lmc_on_xpl_var_change('sim/cockpit/electrical/avionics_on', function(value)
+  str = 'AVO_' .. string.format("%d", value) .. '|'
+  lmc_send_to_com('COM', str)
+  print(str)
+end)
+
+-- Low voltage
+lmc_on_xpl_var_change('sim/cockpit/warnings/annunciators/low_voltage', function(value)
+  str = 'LOV_' .. string.format("%d", value) .. '|'
+  lmc_send_to_com('COM', str)
+  print(str)
+end)
+
+-- Autopilot mode
+lmc_on_xpl_var_change('sim/cockpit/autopilot/autopilot_mode', function(value)
+  str = 'APM_' .. string.format("%d", value) .. '|'
+  lmc_send_to_com('COM', str)
+  print(str)
+end)
 
 os.execute("timeout " .. tonumber(6))   

@@ -52,6 +52,9 @@ uint8_t val_com1_a = 120;
 uint8_t val_com1_b = 0;
 uint8_t val_com2_a = 120;
 uint8_t val_com2_b = 0;
+uint8_t val_avionics_on = 1;
+uint8_t val_low_voltage = 0;
+uint8_t val_autopilot_mode = 0;
 
 char val_gps_to[10] = "";
 double val_gps_distance = 0;
@@ -63,6 +66,8 @@ int val_gps_trk = 0;
 
 const char char_sipka_r[2] = {126,0};
 const char char_sipka_l[2] = {127,0};
+const char char_ctverec_on[2] = {255,0};
+const char char_ctverec_off[2] = {219,0};
 
 char serial_buff[SERIAL_BUFF_SIZE];
 int serial_cntr = 0;
@@ -118,6 +123,8 @@ void setup(){
 
   A_block = 0;
   B_block = 0;
+
+  displayOnOff();
 }
 
 void loop() {
@@ -157,7 +164,19 @@ void loop() {
         if(strncmp(serial_buff, "GP7", 3) == 0){
           val_gps_trk = atoi(&serial_buff[4]);
           redraw2_val(7);
+        }
+        if(strncmp(serial_buff, "AVO", 3) == 0){
+          val_avionics_on = atoi(&serial_buff[4]);
+          displayOnOff();
         }        
+        if(strncmp(serial_buff, "LOV", 3) == 0){
+          val_low_voltage = atoi(&serial_buff[4]);
+          displayOnOff();
+        }
+        if(strncmp(serial_buff, "APM", 3) == 0){
+          val_autopilot_mode = atoi(&serial_buff[4]);
+          redraw3_val(1);
+        }
       }
       serial_cntr = 0;
     } else {
@@ -190,7 +209,7 @@ void loop() {
       // prepinani obrazovek -
       if(i == 3){
         if(actual_screen == 1){
-          actual_screen = 2;
+          actual_screen = 4;
         } else {
           actual_screen--;
         }
@@ -198,7 +217,7 @@ void loop() {
       }
       // prepinani obrazovek +
       if(i == 4){
-        if(actual_screen == 2){
+        if(actual_screen == 4){
           actual_screen = 1;
         } else {
           actual_screen++;
@@ -260,6 +279,13 @@ void loop() {
         if(i == 2){
           sendValSerial(10);
         }
+      }
+
+      // AP stranka
+      if(actual_screen == 3){
+         if(i == 0){
+            sendValSerial(15);   
+         }
       }
     }
     if(butt_state == LOW && tlacitko_list[i].block > 0){
@@ -660,6 +686,9 @@ void sendValSerial(uint8_t var){
   if(var == 14){
     Serial.println("GP6");
   }  
+  if(var == 15){
+    Serial.println("APM");
+  }
 }
 
 /**
@@ -668,6 +697,8 @@ void sendValSerial(uint8_t var){
 void switch_screen(){
   if(actual_screen == 1) redraw1();
   if(actual_screen == 2) redraw2();
+  if(actual_screen == 3) redraw3();
+  if(actual_screen == 4) redraw4();
 }
 
 /**
@@ -889,4 +920,90 @@ void redraw2_static(){
   lcd.setCursor (0,3);
   lcd.print("ETE          TRK    ");
 }
+
+/**
+ * Komplet prekresleni AP obrazovky
+ */
+void redraw3(){
+  uint8_t i;
+  redraw3_static();
+  for(i = 1; i <= 4; i++){
+    redraw3_val(i);
+  }  
+}
+
+/**
+ * Staticka AP obrazovka
+ */
+void redraw3_static(){
+  lcd.setCursor (0,0);
+  lcd.print(char_sipka_r);
+  lcd.print("AP                 ");
+  lcd.setCursor (0,1);
+  lcd.print(" HDG                ");
+  lcd.setCursor (0,2);
+  lcd.print(" NAV                ");
+  lcd.setCursor (0,3);
+  lcd.print(" ALT                ");
+}
+
+/**
+ * Dynamicke veci na AP obrazovce
+ */
+void redraw3_val(uint8_t i){
+
+  if(actual_screen != 3){
+    return;
+  }
+  
+  if(i == 1){
+    lcd.setCursor (5,0);
+    if(val_autopilot_mode == 2){
+      lcd.print(char_ctverec_on);
+    } else {
+      lcd.print(char_ctverec_off);
+    }
+  }
+  if(i == 2){
+    lcd.setCursor (5,1);
+    lcd.print(char_ctverec_off);
+  }
+  if(i == 3){
+    lcd.setCursor (5,2);
+    lcd.print(char_ctverec_off);
+  }
+  if(i == 4){
+    lcd.setCursor (5,3);
+    lcd.print(char_ctverec_off);
+  }
+}
+
+void redraw4(){
+  redraw4_static();
+}
+
+void redraw4_static(){
+  lcd.setCursor (0,0);
+  lcd.print("SQ/TM               ");
+  lcd.setCursor (0,1);
+  lcd.print("                    ");
+  lcd.setCursor (0,2);
+  lcd.print("                    ");
+  lcd.setCursor (0,3);
+  lcd.print("                    ");
+}
+
+/**
+ * Funkce, ktera resi, jestli displej sviti/ukazuje
+ */
+void displayOnOff(){
+  if(val_low_voltage == 0 && val_avionics_on == 1){
+      lcd.backlight();
+      lcd.display();
+  } else {
+      lcd.noBacklight();
+      lcd.noDisplay();  
+  }
+}
+
 
