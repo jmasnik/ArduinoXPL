@@ -1,4 +1,17 @@
+-- konfigurace ==========================
+AXPL_DEBUG = 1
+AXPL_GPS = 0
+-- ======================================
+
 print('ArduinoXPL')
+print('----------------')
+str = "Debug: "
+if(AXPL_DEBUG == 1) then str = str .. 'ON' else str = str .. 'OFF' end
+print(str)
+str = "GPS: "
+if(AXPL_GPS == 1) then str = str .. 'ON' else str = str .. 'OFF' end
+print(str)
+print('----------------')
 
 -- ArduinoXPL - COM
 lmc_add_com('COM', 'COM4', 9600, 8, 'N', 1)
@@ -6,7 +19,9 @@ lmc_set_com_splitter('COM', '\n')
 
 -- zpracovani prijatych dat z COM
 lmc_set_handler('COM', function(comVal)
-  --print(">>" .. comVal .. "<<")
+  if(AXPL_DEBUG == 1) then
+    print("Arduino > LUA: " .. comVal)
+  end
 
   if(string.sub(comVal, 1, 4) == "AD1_") then
     val = string.sub(comVal,5)
@@ -74,64 +89,127 @@ lmc_set_handler('COM', function(comVal)
 
   if(string.sub(comVal, 1, 3) == "APM") then
     lmc_xpl_command('sim/autopilot/servos_toggle')
+    if(AXPL_DEBUG == 1) then
+      print("LUA > XPL: sim/autopilot/servos_toggle")
+    end
   end
 
+  if(string.sub(comVal, 1, 3) == "APH") then
+    lmc_xpl_command('sim/autopilot/heading')
+    if(AXPL_DEBUG == 1) then
+      print("LUA > XPL: sim/autopilot/heading")
+    end
+  end  
+
+  if(string.sub(comVal, 1, 3) == "APN") then
+    lmc_xpl_command('sim/autopilot/NAV')
+    if(AXPL_DEBUG == 1) then
+      print("LUA > XPL: sim/autopilot/NAV")
+    end
+  end
+  
+  if(string.sub(comVal, 1, 3) == "APA") then
+    lmc_xpl_command('sim/autopilot/altitude_hold')
+    if(AXPL_DEBUG == 1) then
+      print("LUA > XPL: sim/autopilot/altitude_hold")
+    end
+  end  
+  
 end)
 
--- GPS to
-lmc_on_xpl_var_change('sim/cockpit2/radios/indicators/gps_nav_id', function(value)
-  lmc_send_to_com('COM', 'GP1_' .. value .. '|')
-end)
+-- GPS - jen pokud je zapnuta
+if(AXPL_GPS == 1) then
 
--- GPS distance NM
-lmc_on_xpl_var_change('sim/cockpit2/radios/indicators/gps_dme_distance_nm', function(value, count)
-  lmc_send_to_com('COM', 'GP2_' .. string.format("%.1f", value) .. '|')
-end, 2000)
+	-- GPS to
+	lmc_on_xpl_var_change('sim/cockpit2/radios/indicators/gps_nav_id', function(value)
+	  str = 'GP1_' .. value .. '|'
+	  lmc_send_to_com('COM', str)
+	  if(AXPL_DEBUG == 1) then
+		print("LUA > Arduino: " .. str)
+	  end
+	end)
 
--- GPS DTK
-lmc_on_xpl_var_change('sim/cockpit/radios/gps_course_degtm', function(value, count)
-  lmc_send_to_com('COM', 'GP3_' .. string.format("%d", value) .. '|')
-end, 2000)
+	-- GPS distance NM
+	lmc_on_xpl_var_change('sim/cockpit2/radios/indicators/gps_dme_distance_nm', function(value, count)
+	  str = 'GP2_' .. string.format("%.1f", value) .. '|'
+	  lmc_send_to_com('COM', str)
+	  if(AXPL_DEBUG == 1) then
+		print("LUA > Arduino: " .. str)
+	  end
+	end, 2400)
 
--- GPS ETE sec
-lmc_on_xpl_var_change('sim/cockpit/radios/gps_dme_time_secs', function(value, count)
-  lmc_send_to_com('COM', 'GP4_' .. string.format("%d", value * 60) .. '|')
-end, 2000)
+	-- GPS DTK
+	lmc_on_xpl_var_change('sim/cockpit/radios/gps_course_degtm', function(value, count)
+	  str = 'GP3_' .. string.format("%d", value) .. '|'
+	  lmc_send_to_com('COM', str)
+	  if(AXPL_DEBUG == 1) then
+		print("LUA > Arduino: " .. str)
+	  end
+	end, 4500)
 
--- GPS dme speed kts
-lmc_on_xpl_var_change('sim/cockpit/radios/gps_dme_speed_kts', function(value, count)
-  lmc_send_to_com('COM', 'GP5_' .. string.format("%d", value) .. '|')
-end, 2000)
+	-- GPS ETE sec
+	lmc_on_xpl_var_change('sim/cockpit/radios/gps_dme_time_secs', function(value, count)
+	  str = 'GP4_' .. string.format("%d", value * 60) .. '|'
+	  lmc_send_to_com('COM', str)
+	  if(AXPL_DEBUG == 1) then
+		print("LUA > Arduino: " .. str)
+	  end
+	end, 3500)
 
--- GPS bearing
-lmc_on_xpl_var_change('sim/cockpit2/radios/indicators/gps_bearing_deg_mag', function(value, count)
-  lmc_send_to_com('COM', 'GP6_' .. string.format("%d", value) .. '|')
-end, 2000)
+	-- GPS dme speed kts
+	lmc_on_xpl_var_change('sim/cockpit/radios/gps_dme_speed_kts', function(value, count)
+	  str = 'GP5_' .. string.format("%d", value) .. '|'
+	  lmc_send_to_com('COM', str)
+	  if(AXPL_DEBUG == 1) then
+		print("LUA > Arduino: " .. str)
+	  end
+	end, 4000)
 
--- GPS TRK (spatne - neni to GPS TRK, je to natoceni era...)
-lmc_on_xpl_var_change('sim/flightmodel/position/magpsi', function(value, count)
-  lmc_send_to_com('COM', 'GP7_' .. string.format("%d", value) .. '|')
-end, 2000)
+	-- GPS bearing
+	lmc_on_xpl_var_change('sim/cockpit2/radios/indicators/gps_bearing_deg_mag', function(value, count)
+	  str = 'GP6_' .. string.format("%d", value) .. '|'
+	  lmc_send_to_com('COM', str)
+	  if(AXPL_DEBUG == 1) then
+		print("LUA > Arduino: " .. str)
+	  end
+	end, 3000)
+
+	-- GPS TRK (spatne - neni to GPS TRK, je to natoceni era...)
+	lmc_on_xpl_var_change('sim/flightmodel/position/magpsi', function(value, count)
+	  str = 'GP7_' .. string.format("%d", value) .. '|'
+	  lmc_send_to_com('COM', str)
+	  if(AXPL_DEBUG == 1) then
+		print("LUA > Arduino: " .. str)
+	  end
+	end, 2000)
+
+end
 
 -- Avionics on
 lmc_on_xpl_var_change('sim/cockpit/electrical/avionics_on', function(value)
   str = 'AVO_' .. string.format("%d", value) .. '|'
   lmc_send_to_com('COM', str)
-  print(str)
+  if(AXPL_DEBUG == 1) then
+    print("LUA > Arduino: " .. str)
+  end
 end)
 
 -- Low voltage
 lmc_on_xpl_var_change('sim/cockpit/warnings/annunciators/low_voltage', function(value)
   str = 'LOV_' .. string.format("%d", value) .. '|'
   lmc_send_to_com('COM', str)
-  print(str)
+  if(AXPL_DEBUG == 1) then
+    print("LUA > Arduino: " .. str)
+  end
 end)
 
 -- Autopilot mode
 lmc_on_xpl_var_change('sim/cockpit/autopilot/autopilot_mode', function(value)
   str = 'APM_' .. string.format("%d", value) .. '|'
   lmc_send_to_com('COM', str)
-  print(str)
+  if(AXPL_DEBUG == 1) then
+    print("LUA > Arduino: " .. str)
+  end
 end)
 
-os.execute("timeout " .. tonumber(6))   
+os.execute("timeout " .. tonumber(5))   

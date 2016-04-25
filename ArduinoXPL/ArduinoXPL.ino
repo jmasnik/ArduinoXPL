@@ -31,6 +31,8 @@ uint8_t sipka_left_dir;
 uint8_t sipka_right_pos;
 uint8_t sipka_right_dir;
 
+uint8_t sipka_ap_left_pos;
+
 long cntr = 0;
 
 int val = 0;
@@ -107,6 +109,9 @@ void setup(){
   // smer sipky - 1=vpravo, 2=vlevo
   sipka_left_dir = 1;
   sipka_right_dir = 1;
+
+  // sipka na AP obrazovce
+  sipka_ap_left_pos = 1;
 
   // LCD
   lcd.begin();  
@@ -283,11 +288,17 @@ void loop() {
 
       // AP stranka
       if(actual_screen == 3){
+         // zmacknuti leveho tocitka
          if(i == 0){
-            sendValSerial(15);   
+            if(sipka_ap_left_pos == 1) sendValSerial(15);
+            if(sipka_ap_left_pos == 2) sendValSerial(16);
+            if(sipka_ap_left_pos == 3) sendValSerial(17);
+            if(sipka_ap_left_pos == 4) sendValSerial(18);
          }
       }
+      
     }
+    
     if(butt_state == LOW && tlacitko_list[i].block > 0){
       tlacitko_list[i].block--;
     }
@@ -365,6 +376,12 @@ void loop() {
       if(actual_screen == 2){
         sendValSerial(11);
       }
+      if(actual_screen == 3){
+        if(sipka_ap_left_pos < 4){
+          sipka_ap_left_pos++;
+          redraw3();
+        }
+      }
     }
 
     // snizovani
@@ -436,7 +453,13 @@ void loop() {
       }
       if(actual_screen == 2){
         sendValSerial(12);
-      }      
+      }   
+      if(actual_screen == 3){
+        if(sipka_ap_left_pos > 1){
+          sipka_ap_left_pos--;
+          redraw3();
+        }
+      }   
     }    
   }
 
@@ -524,7 +547,7 @@ void loop() {
       }
       if(actual_screen == 2){
         sendValSerial(13);
-      }      
+      }
     }
 
     // snizovani
@@ -686,9 +709,10 @@ void sendValSerial(uint8_t var){
   if(var == 14){
     Serial.println("GP6");
   }  
-  if(var == 15){
-    Serial.println("APM");
-  }
+  if(var == 15)   Serial.println("APM");
+  if(var == 16)   Serial.println("APH");
+  if(var == 17)   Serial.println("APN");
+  if(var == 18)   Serial.println("APA");
 }
 
 /**
@@ -937,14 +961,13 @@ void redraw3(){
  */
 void redraw3_static(){
   lcd.setCursor (0,0);
-  lcd.print(char_sipka_r);
   lcd.print("AP                 ");
   lcd.setCursor (0,1);
-  lcd.print(" HDG                ");
+  lcd.print("HDG                ");
   lcd.setCursor (0,2);
-  lcd.print(" NAV                ");
+  lcd.print("NAV                ");
   lcd.setCursor (0,3);
-  lcd.print(" ALT                ");
+  lcd.print("ALT                ");
 }
 
 /**
@@ -957,23 +980,23 @@ void redraw3_val(uint8_t i){
   }
   
   if(i == 1){
-    lcd.setCursor (5,0);
-    if(val_autopilot_mode == 2){
-      lcd.print(char_ctverec_on);
-    } else {
-      lcd.print(char_ctverec_off);
-    }
+    lcd.setCursor (3,0);
+    lcd.print(sipka_ap_left_pos == 1 ? char_sipka_r : " ");
+    lcd.print(val_autopilot_mode == 2 ? char_ctverec_on : char_ctverec_off);
   }
   if(i == 2){
-    lcd.setCursor (5,1);
+    lcd.setCursor (3,1);
+    lcd.print(sipka_ap_left_pos == 2 ? char_sipka_r : " ");
     lcd.print(char_ctverec_off);
   }
   if(i == 3){
-    lcd.setCursor (5,2);
+    lcd.setCursor (3,2);
+    lcd.print(sipka_ap_left_pos == 3 ? char_sipka_r : " ");
     lcd.print(char_ctverec_off);
   }
   if(i == 4){
-    lcd.setCursor (5,3);
+    lcd.setCursor (3,3);
+    lcd.print(sipka_ap_left_pos == 4 ? char_sipka_r : " ");
     lcd.print(char_ctverec_off);
   }
 }
