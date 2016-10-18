@@ -56,7 +56,12 @@ uint8_t val_com2_a = 120;
 uint8_t val_com2_b = 0;
 uint8_t val_avionics_on = 1;
 uint8_t val_low_voltage = 0;
+
 uint8_t val_autopilot_mode = 0;
+uint8_t val_autopilot_heading_mode = 0;
+uint8_t val_autopilot_hnav_armed = 0;
+uint8_t val_autopilot_altitude_hold_armed = 0;
+uint8_t val_autopilot_altitude_mode = 0;
 
 char val_gps_to[10] = "";
 double val_gps_distance = 0;
@@ -182,6 +187,22 @@ void loop() {
           val_autopilot_mode = atoi(&serial_buff[4]);
           redraw3_val(1);
         }
+        if(strncmp(serial_buff, "APH", 3) == 0){
+          val_autopilot_heading_mode = atoi(&serial_buff[4]);
+          redraw3_val(2);
+        }
+        if(strncmp(serial_buff, "APN", 3) == 0){
+          val_autopilot_hnav_armed = atoi(&serial_buff[4]);
+          redraw3_val(3);
+        }
+        if(strncmp(serial_buff, "APA", 3) == 0){
+          val_autopilot_altitude_hold_armed = atoi(&serial_buff[4]);
+          redraw3_val(4);
+        }
+        if(strncmp(serial_buff, "APB", 3) == 0){
+          val_autopilot_altitude_mode = atoi(&serial_buff[4]);
+          redraw3_val(4);
+        }
       }
       serial_cntr = 0;
     } else {
@@ -288,12 +309,23 @@ void loop() {
 
       // AP stranka
       if(actual_screen == 3){
-         // zmacknuti leveho tocitka
          if(i == 0){
+            // zmacknuti leveho tocitka - volba funkce
             if(sipka_ap_left_pos == 1) sendValSerial(15);
             if(sipka_ap_left_pos == 2) sendValSerial(16);
             if(sipka_ap_left_pos == 3) sendValSerial(17);
             if(sipka_ap_left_pos == 4) sendValSerial(18);
+         }
+
+         if(i == 1){
+            // leve dolni tlacitko - posun leve sipky dolu
+            if(sipka_ap_left_pos < 4) sipka_ap_left_pos++;
+            redraw3();
+         }         
+         if(i == 2){
+            // leve horni tlacitko - posun leve sipky nahoru
+            if(sipka_ap_left_pos > 1) sipka_ap_left_pos--;
+            redraw3();
          }
       }
       
@@ -376,12 +408,14 @@ void loop() {
       if(actual_screen == 2){
         sendValSerial(11);
       }
+      /*
       if(actual_screen == 3){
         if(sipka_ap_left_pos < 4){
           sipka_ap_left_pos++;
           redraw3();
         }
       }
+      */
     }
 
     // snizovani
@@ -453,13 +487,15 @@ void loop() {
       }
       if(actual_screen == 2){
         sendValSerial(12);
-      }   
+      }
+      /*   
       if(actual_screen == 3){
         if(sipka_ap_left_pos > 1){
           sipka_ap_left_pos--;
           redraw3();
         }
-      }   
+      }
+      */   
     }    
   }
 
@@ -708,11 +744,13 @@ void sendValSerial(uint8_t var){
   }
   if(var == 14){
     Serial.println("GP6");
-  }  
-  if(var == 15)   Serial.println("APM");
-  if(var == 16)   Serial.println("APH");
-  if(var == 17)   Serial.println("APN");
-  if(var == 18)   Serial.println("APA");
+  }
+
+  // AP prikazy
+  if(var == 15) Serial.println("APM");
+  if(var == 16) Serial.println("APH");
+  if(var == 17) Serial.println("APN");
+  if(var == 18) Serial.println("APA");
 }
 
 /**
@@ -961,13 +999,13 @@ void redraw3(){
  */
 void redraw3_static(){
   lcd.setCursor (0,0);
-  lcd.print("AP                 ");
+  lcd.print("AP                  ");
   lcd.setCursor (0,1);
-  lcd.print("HDG                ");
+  lcd.print("HDG                 ");
   lcd.setCursor (0,2);
-  lcd.print("NAV                ");
+  lcd.print("NAV                 ");
   lcd.setCursor (0,3);
-  lcd.print("ALT                ");
+  lcd.print("ALT                 ");
 }
 
 /**
@@ -987,17 +1025,17 @@ void redraw3_val(uint8_t i){
   if(i == 2){
     lcd.setCursor (3,1);
     lcd.print(sipka_ap_left_pos == 2 ? char_sipka_r : " ");
-    lcd.print(char_ctverec_off);
+    lcd.print(val_autopilot_heading_mode == 1 ? char_ctverec_on :char_ctverec_off);
   }
   if(i == 3){
     lcd.setCursor (3,2);
     lcd.print(sipka_ap_left_pos == 3 ? char_sipka_r : " ");
-    lcd.print(char_ctverec_off);
+    lcd.print(val_autopilot_hnav_armed == 1 ? char_ctverec_on :char_ctverec_off);
   }
   if(i == 4){
     lcd.setCursor (3,3);
     lcd.print(sipka_ap_left_pos == 4 ? char_sipka_r : " ");
-    lcd.print(char_ctverec_off);
+    lcd.print(val_autopilot_altitude_hold_armed == 1 ? char_ctverec_on :char_ctverec_off);
   }
 }
 
