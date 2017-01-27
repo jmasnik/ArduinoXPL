@@ -1,7 +1,7 @@
 #include "HID-Project.h"
 
 #define SWITCH_COUNT 4
-#define BUTTON_TMR_MAX 255
+#define BUTTON_TMR_MAX 100
 
 typedef struct {
   uint8_t pin;
@@ -20,9 +20,11 @@ hwswitch switch_list[SWITCH_COUNT];
 const int pinLed = LED_BUILTIN;
 const int pinButton = 2;
 
-void setup() {
-  uint8_t i;
+uint8_t i;
+uint8_t gp_write;
 
+void setup() {
+  
   switch_list[0].pin = 2;
   switch_list[0].button_a = 1;
   switch_list[0].button_b = 2;
@@ -57,7 +59,8 @@ void setup() {
 }
 
 void loop() {
-  uint8_t i;
+
+  gp_write = 0;
 
   for(i = 0; i < SWITCH_COUNT; i++){
     if(digitalRead(switch_list[i].pin) == HIGH && switch_list[i].actual_value == 0){
@@ -74,16 +77,31 @@ void loop() {
 
   for(i = 0; i < SWITCH_COUNT; i++){
     if(switch_list[i].button_a_tmr > 0){
-      if(switch_list[i].button_a_tmr == BUTTON_TMR_MAX) Gamepad.press(switch_list[i].button_a);
-      if(switch_list[i].button_a_tmr == 1) Gamepad.release(switch_list[i].button_a);
+      if(switch_list[i].button_a_tmr == BUTTON_TMR_MAX){
+        Gamepad.press(switch_list[i].button_a);
+        gp_write = 1;
+      }
+      if(switch_list[i].button_a_tmr == 1){
+        Gamepad.release(switch_list[i].button_a);
+        gp_write = 1;
+      }
       switch_list[i].button_a_tmr--;
     }
     if(switch_list[i].button_b_tmr > 0){
-      if(switch_list[i].button_b_tmr == BUTTON_TMR_MAX) Gamepad.press(switch_list[i].button_b);
-      if(switch_list[i].button_b_tmr == 1) Gamepad.release(switch_list[i].button_b);
+      if(switch_list[i].button_b_tmr == BUTTON_TMR_MAX){
+        Gamepad.press(switch_list[i].button_b);
+        gp_write = 1;
+      }
+      if(switch_list[i].button_b_tmr == 1){
+        Gamepad.release(switch_list[i].button_b);
+        gp_write = 1;
+      }
       switch_list[i].button_b_tmr--;
     }    
   }
 
-  Gamepad.write();
+  if(gp_write == 1){
+    Gamepad.write();
+  }
+  delay(10);
 }
