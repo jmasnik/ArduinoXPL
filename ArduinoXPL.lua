@@ -14,7 +14,7 @@ print(str)
 print('----------------')
 
 -- ArduinoXPL - COM
-lmc_add_com('COM', 'COM4', 9600, 8, 'N', 1)
+lmc_add_com('COM', 'COM3', 115200, 8, 'N', 1)
 lmc_set_com_splitter('COM', '\n')  
 
 -- zpracovani prijatych dat z COM
@@ -63,13 +63,31 @@ lmc_set_handler('COM', function(comVal)
     lmc_set_xpl_variable('sim/cockpit2/radios/actuators/com2_frequency_hz', val + 0)
   end
 
-  if(string.sub(comVal, 1, 3) == "GP1") then
+
+  if(string.sub(comVal, 1, 4) == "GPS1") then
     lmc_xpl_command('sim/GPS/g430n1_direct')
   end
 
-  if(string.sub(comVal, 1, 3) == "GP2") then
+  if(string.sub(comVal, 1, 4) == "GPS2") then
+    lmc_xpl_command('sim/GPS/g430n1_fpl')
+  end
+
+  if(string.sub(comVal, 1, 4) == "GPS3") then
+    --lmc_xpl_command('sim/GPS/g430n1_direct')
+  end
+
+  if(string.sub(comVal, 1, 4) == "GPS4") then
+    lmc_xpl_command('sim/GPS/g430n1_clr')
+  end
+
+  if(string.sub(comVal, 1, 4) == "GPS5") then
     lmc_xpl_command('sim/GPS/g430n1_ent')
   end
+
+  if(string.sub(comVal, 1, 4) == "GPS6") then
+    lmc_xpl_command('sim/GPS/g430n1_cursor')
+  end
+
 
   if(string.sub(comVal, 1, 3) == "GP3") then
     lmc_xpl_command('sim/GPS/g430n1_chapter_up')

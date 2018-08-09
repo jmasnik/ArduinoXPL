@@ -83,18 +83,18 @@ void setup(){
   int i;
 
   // seriak
-  Serial.begin(9600);
+  Serial.begin(115200);
   while (!Serial) { }
 
   // definice tlacitak
-  tlacitko_list[0].pin = 4;    tlacitko_list[0].block = BUTTON_BLOCK_INT;   // leve mackaci tocitko
-  tlacitko_list[1].pin = 5;    tlacitko_list[1].block = BUTTON_BLOCK_INT;   // leve dolni
-  tlacitko_list[2].pin = 6;    tlacitko_list[2].block = BUTTON_BLOCK_INT;   // leve horni
-  tlacitko_list[3].pin = 7;    tlacitko_list[3].block = BUTTON_BLOCK_INT;   // horni levy
-  tlacitko_list[4].pin = 8;    tlacitko_list[4].block = BUTTON_BLOCK_INT;   // horni pravy
-  tlacitko_list[5].pin = 9;    tlacitko_list[5].block = BUTTON_BLOCK_INT;   // pravy dolni
-  tlacitko_list[6].pin = 10;   tlacitko_list[6].block = BUTTON_BLOCK_INT;   // prvay horni
-  tlacitko_list[7].pin = 11;   tlacitko_list[7].block = BUTTON_BLOCK_INT;   // pravy mackaci tocitko
+  tlacitko_list[0].pin = 4;    tlacitko_list[0].block = 0;   // leve mackaci tocitko
+  tlacitko_list[1].pin = 5;    tlacitko_list[1].block = 0;   // leve dolni
+  tlacitko_list[2].pin = 6;    tlacitko_list[2].block = 0;   // leve horni
+  tlacitko_list[3].pin = 7;    tlacitko_list[3].block = 0;   // horni levy
+  tlacitko_list[4].pin = 8;    tlacitko_list[4].block = 0;   // horni pravy
+  tlacitko_list[5].pin = 9;    tlacitko_list[5].block = 0;   // pravy dolni
+  tlacitko_list[6].pin = 10;   tlacitko_list[6].block = 0;   // prvay horni
+  tlacitko_list[7].pin = 11;   tlacitko_list[7].block = 0;   // pravy mackaci tocitko
 
   // nastaveni pinu
   for(i = 0; i < 8; i++){
@@ -228,7 +228,8 @@ void loop() {
   for(i = 0; i < 8; i++){
     // nacteni stavu
     butt_state = digitalRead(tlacitko_list[i].pin);
-    if(butt_state == HIGH && tlacitko_list[i].block == 0){
+    
+    if(butt_state == LOW && tlacitko_list[i].block == 0){
       // neco budeme delat - je to nove stisknuty
       tlacitko_list[i].block = BUTTON_BLOCK_INT;
 
@@ -295,16 +296,20 @@ void loop() {
         }        
       }
 
-      // GPS stranka
+      // GPS stranka - tlacitka
       if(actual_screen == 2){
-        // leve dolni - GPS DIRECT
-        if(i == 1){
-          sendValSerial(9);
-        }
-        // leve horni - GPS ENT
-        if(i == 2){
-          sendValSerial(10);
-        }
+        // leve dolni
+        if(i == 1) sendCmdSerial("GPS2");
+        // leve horni
+        if(i == 2) sendCmdSerial("GPS1");
+        // leve mackaci tocitko
+        if(i == 0) sendCmdSerial("GPS3");
+        // prave dolni
+        if(i == 5) sendCmdSerial("GPS5");
+        // prave horni
+        if(i == 6) sendCmdSerial("GPS4");
+        // prave mackaci tocitko
+        if(i == 7) sendCmdSerial("GPS6");        
       }
 
       // AP stranka
@@ -331,7 +336,7 @@ void loop() {
       
     }
     
-    if(butt_state == LOW && tlacitko_list[i].block > 0){
+    if(butt_state == HIGH && tlacitko_list[i].block > 0){
       tlacitko_list[i].block--;
     }
   }
@@ -673,6 +678,13 @@ void loop() {
 
   if(A_block > 0) A_block--;
   if(B_block > 0) B_block--;
+}
+
+/**
+ * Poslani prikazu na seriak - jen string, zadna hodnota
+ */
+void sendCmdSerial(char *var){
+  Serial.println(var);
 }
 
 /**
